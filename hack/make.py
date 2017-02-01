@@ -40,6 +40,7 @@ BUILD_METADATA = libbuild.metadata(libbuild.REPO_ROOT)
 libbuild.BIN_MATRIX = {
     'kloader': {
         'type': 'go',
+        'release': True,
         'go_version': True,
         'use_cgo': False,
         'distro': {
