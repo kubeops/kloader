@@ -19,6 +19,8 @@ const (
 	maxPathLength     = 4096
 )
 
+// Adapted from: https://github.com/kubernetes/kubernetes/blob/master/pkg/volume/util/atomic_writer.go
+
 // AtomicWriter handles atomically projecting content for a set of files into
 // a target directory.
 //
