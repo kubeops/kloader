@@ -1,5 +1,5 @@
 # kloader
-Reload process from Kubernetes Configmaps.
+Runs commands when a Kubernetes Configmap changes.
 
 ### ConfigMap
 Many applications require configuration via some combination of config files. These configuration artifacts
