@@ -100,7 +100,7 @@ func (c *configMapMounter) Watch() {
 			},
 			UpdateFunc: func(old, new interface{}) {
 				if oldMap, oldOK := old.(*api.ConfigMap); oldOK {
-					if newMap, newOK := old.(*api.ConfigMap); newOK {
+					if newMap, newOK := new.(*api.ConfigMap); newOK {
 						if !reflect.DeepEqual(oldMap.Data, newMap.Data) {
 							c.ReMount()
 						}
@@ -114,7 +114,7 @@ func (c *configMapMounter) Watch() {
 
 func (c *configMapMounter) listFunc(client internalclientset.Interface) func(api.ListOptions) (runtime.Object, error) {
 	return func(opts api.ListOptions) (runtime.Object, error) {
-		return client.Core().Pods(c.source.Namespace).List(api.ListOptions{
+		return client.Core().ConfigMaps(c.source.Namespace).List(api.ListOptions{
 			FieldSelector: fields.OneTermEqualSelector("metadata.name", c.source.Name),
 		})
 	}
@@ -122,7 +122,7 @@ func (c *configMapMounter) listFunc(client internalclientset.Interface) func(api
 
 func (c *configMapMounter) watchFunc(client internalclientset.Interface) func(options api.ListOptions) (watch.Interface, error) {
 	return func(options api.ListOptions) (watch.Interface, error) {
-		return client.Core().Pods(c.source.Namespace).Watch(api.ListOptions{
+		return client.Core().ConfigMaps(c.source.Namespace).Watch(api.ListOptions{
 			FieldSelector: fields.OneTermEqualSelector("metadata.name", c.source.Name),
 		})
 	}
