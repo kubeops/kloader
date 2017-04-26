@@ -1,3 +1,7 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/appscode/kloader)](https://goreportcard.com/report/github.com/appscode/kloader)
+
+[Website](https://appscode.com) • [Slack](https://slack.appscode.com) • [Forum](https://discuss.appscode.com) • [Twitter](https://twitter.com/AppsCodeHQ)
+
 # kloader
 Runs commands when a Kubernetes Configmap changes.
 
