@@ -11,7 +11,7 @@ import (
 func newRunCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "run",
-		Short: "run kloader",
+		Short: "Run and hold kloader",
 		Run: func(cmd *cobra.Command, args []string) {
 			mounter := NewConfigMapMounter(getRestConfig(), configMap, mountDir, bashFile)
 			mounter.Run()

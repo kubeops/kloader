@@ -7,7 +7,7 @@ import (
 func newCheckCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "check",
-		Short: "check validation of required configmap",
+		Short: "Validate kloader configuration",
 		Run: func(cmd *cobra.Command, args []string) {
 			mounter := NewConfigMapMounter(getRestConfig(), configMap, mountDir, bashFile)
 			mounter.Mount()
