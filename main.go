@@ -41,7 +41,7 @@ func main() {
 
 	rootCmd.PersistentFlags().StringVarP(&configMap, "config-map", "c", "", "Configmap name that needs to be mount")
 	rootCmd.PersistentFlags().StringVarP(&mountDir, "mount-location", "m", "", "Volume location where the file will be mounted")
-	rootCmd.PersistentFlags().StringVarP(&bashFile, "boot-root", "b", "", "Bashscript that will be run on every change of the file")
+	rootCmd.PersistentFlags().StringVarP(&bashFile, "boot-cmd", "b", "", "Bash script that will be run on every change of the file")
 	rootCmd.PersistentFlags().StringVar(&kubeMaster, "k8s-master", "", "The address of the Kubernetes API server (overrides any value in kubeconfig)")
 	rootCmd.PersistentFlags().StringVar(&kubeConfig, "k8s-config", "", "Path to kubeconfig file with authorization information (the master location is set by the master flag).")
 	rootCmd.PersistentFlags().AddGoFlagSet(flag.CommandLine)
