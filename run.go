@@ -4,8 +4,8 @@ import (
 	"github.com/appscode/go/hold"
 	"github.com/appscode/log"
 	"github.com/spf13/cobra"
-	"k8s.io/kubernetes/pkg/client/restclient"
-	"k8s.io/kubernetes/pkg/client/unversioned/clientcmd"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 func newRunCmd() *cobra.Command {
@@ -22,7 +22,7 @@ func newRunCmd() *cobra.Command {
 	return cmd
 }
 
-func getRestConfig() *restclient.Config {
+func getRestConfig() *rest.Config {
 	if configMap == "" || mountDir == "" {
 		log.Fatal("ConfigMap/MountDir is required, but not provided")
 	}
