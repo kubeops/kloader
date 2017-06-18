@@ -5,20 +5,17 @@
 # kloader
 Runs commands when a Kubernetes Configmap changes.
 
-### ConfigMap
+## Why Kloader?
 Many applications require configuration via some combination of config files. These configuration artifacts
 should be decoupled from image content in order to keep containerized applications portable.
 The ConfigMap API resource provides mechanisms to inject containers with configuration data while keeping
 containers agnostic of Kubernetes. ConfigMap can be used to store fine-grained information like individual
-properties or coarse-grained information like entire config files or JSON blobs.
+properties or coarse-grained information like entire config files or JSON blobs. [Read More about the use cases and usage of ConfigMap](https://kubernetes.io/docs/user-guide/configmap/).
 
-[Read More about the use cases and usage of ConfigMap](https://kubernetes.io/docs/user-guide/configmap/).
-
-## What Kloader does?
 `Kloader` watches a specified ConfigMap, mount the ConfigMap data in specified directory as files. In case of
 any update in ConfigMap data `Kloader` updates the mounted file and run an additional bash script.
 
-## Configurations
+## Configuration
 `Kloader` has following configurations that should be provided as `flags`.
 
 ```
@@ -46,3 +43,13 @@ Kubernetes API Configurations. Default is InCluster config.
 ```
 ./hack/make.py build kloader
 ```
+
+## Release Kloader
+```sh
+./hack/make.py build; env APPSCODE_ENV=prod ./hack/make.py push; ./hack/make.py push
+```
+
+## Versioning Policy
+Kloader __does not follow semver__, rather the _major_ version of operator points to the
+Kubernetes [client-go](https://github.com/kubernetes/client-go#branches-and-tags) version. You can verify this
+from the `glide.yaml` file. This means there might be breaking changes between point releases of the kloader. Please always check the release notes for upgrade instructions.
