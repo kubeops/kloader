@@ -10,28 +10,29 @@ import (
 
 	"github.com/appscode/kloader/volume"
 	"github.com/appscode/log"
-	"k8s.io/kubernetes/pkg/api"
-	"k8s.io/kubernetes/pkg/client/cache"
-	"k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset"
-	"k8s.io/kubernetes/pkg/client/restclient"
-	"k8s.io/kubernetes/pkg/fields"
-	"k8s.io/kubernetes/pkg/runtime"
-	"k8s.io/kubernetes/pkg/util/wait"
-	"k8s.io/kubernetes/pkg/watch"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/apimachinery/pkg/watch"
+	clientset "k8s.io/client-go/kubernetes"
+	apiv1 "k8s.io/client-go/pkg/api/v1"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/cache"
 )
 
 type configMapMounter struct {
-	source        *api.ObjectReference
+	source        *apiv1.ObjectReference
 	mountLocation string
 	cmdFile       string
 
-	kubeConfig *restclient.Config
-	kubeClient internalclientset.Interface
+	kubeConfig *rest.Config
+	kubeClient clientset.Interface
 }
 
-func NewConfigMapMounter(kubeConfig *restclient.Config, configMap, mountDir, cmd string) *configMapMounter {
+func NewConfigMapMounter(kubeConfig *rest.Config, configMap, mountDir, cmd string) *configMapMounter {
 	configMapParts := strings.Split(strings.TrimSpace(configMap), ".")
-	source := &api.ObjectReference{
+	source := &apiv1.ObjectReference{
 		Name: configMapParts[0],
 	}
 
@@ -39,7 +40,7 @@ func NewConfigMapMounter(kubeConfig *restclient.Config, configMap, mountDir, cmd
 	// or default namespace.
 	source.Namespace = os.Getenv("KUBE_NAMESPACE")
 	if len(source.Namespace) == 0 {
-		source.Namespace = api.NamespaceDefault
+		source.Namespace = apiv1.NamespaceDefault
 	}
 	if len(configMapParts) == 2 {
 		source.Namespace = configMapParts[1]
@@ -50,7 +51,7 @@ func NewConfigMapMounter(kubeConfig *restclient.Config, configMap, mountDir, cmd
 		mountLocation: strings.TrimSuffix(mountDir, "/"),
 		cmdFile:       cmd,
 		kubeConfig:    kubeConfig,
-		kubeClient:    internalclientset.NewForConfigOrDie(kubeConfig),
+		kubeClient:    clientset.NewForConfigOrDie(kubeConfig),
 	}
 }
 
@@ -60,7 +61,7 @@ func (c *configMapMounter) Run() {
 }
 
 func (c *configMapMounter) Mount() {
-	configMap, err := c.kubeClient.Core().ConfigMaps(c.source.Namespace).Get(c.source.Name)
+	configMap, err := c.kubeClient.CoreV1().ConfigMaps(c.source.Namespace).Get(c.source.Name, metav1.GetOptions{})
 	if err != nil {
 		log.Fatalln("Failed to get ConfigMap, Cause", err)
 	}
@@ -94,15 +95,15 @@ func (c *configMapMounter) Watch() {
 	}
 
 	_, controller := cache.NewInformer(lw,
-		&api.ConfigMap{},
+		&apiv1.ConfigMap{},
 		time.Minute*5,
 		cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
 				c.ReMount()
 			},
 			UpdateFunc: func(old, new interface{}) {
-				if oldMap, oldOK := old.(*api.ConfigMap); oldOK {
-					if newMap, newOK := new.(*api.ConfigMap); newOK {
+				if oldMap, oldOK := old.(*apiv1.ConfigMap); oldOK {
+					if newMap, newOK := new.(*apiv1.ConfigMap); newOK {
 						if !reflect.DeepEqual(oldMap.Data, newMap.Data) {
 							c.ReMount()
 						}
@@ -114,18 +115,18 @@ func (c *configMapMounter) Watch() {
 	go controller.Run(wait.NeverStop)
 }
 
-func (c *configMapMounter) listFunc(client internalclientset.Interface) func(api.ListOptions) (runtime.Object, error) {
-	return func(opts api.ListOptions) (runtime.Object, error) {
-		return client.Core().ConfigMaps(c.source.Namespace).List(api.ListOptions{
-			FieldSelector: fields.OneTermEqualSelector("metadata.name", c.source.Name),
+func (c *configMapMounter) listFunc(client clientset.Interface) func(metav1.ListOptions) (runtime.Object, error) {
+	return func(opts metav1.ListOptions) (runtime.Object, error) {
+		return client.CoreV1().ConfigMaps(c.source.Namespace).List(metav1.ListOptions{
+			FieldSelector: fields.OneTermEqualSelector("metadata.name", c.source.Name).String(),
 		})
 	}
 }
 
-func (c *configMapMounter) watchFunc(client internalclientset.Interface) func(options api.ListOptions) (watch.Interface, error) {
-	return func(options api.ListOptions) (watch.Interface, error) {
-		return client.Core().ConfigMaps(c.source.Namespace).Watch(api.ListOptions{
-			FieldSelector: fields.OneTermEqualSelector("metadata.name", c.source.Name),
+func (c *configMapMounter) watchFunc(client clientset.Interface) func(options metav1.ListOptions) (watch.Interface, error) {
+	return func(options metav1.ListOptions) (watch.Interface, error) {
+		return client.CoreV1().ConfigMaps(c.source.Namespace).Watch(metav1.ListOptions{
+			FieldSelector: fields.OneTermEqualSelector("metadata.name", c.source.Name).String(),
 		})
 	}
 }
