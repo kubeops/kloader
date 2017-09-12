@@ -90,8 +90,16 @@ func (c *configMapMounter) ReMount() {
 
 func (c *configMapMounter) Watch() {
 	lw := &cache.ListWatch{
-		ListFunc:  c.listFunc(c.kubeClient),
-		WatchFunc: c.watchFunc(c.kubeClient),
+		ListFunc: func(opts metav1.ListOptions) (runtime.Object, error) {
+			return c.kubeClient.CoreV1().ConfigMaps(c.source.Namespace).List(metav1.ListOptions{
+				FieldSelector: fields.OneTermEqualSelector("metadata.name", c.source.Name).String(),
+			})
+		},
+		WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
+			return c.kubeClient.CoreV1().ConfigMaps(c.source.Namespace).Watch(metav1.ListOptions{
+				FieldSelector: fields.OneTermEqualSelector("metadata.name", c.source.Name).String(),
+			})
+		},
 	}
 
 	_, controller := cache.NewInformer(lw,
@@ -113,22 +121,6 @@ func (c *configMapMounter) Watch() {
 		},
 	)
 	go controller.Run(wait.NeverStop)
-}
-
-func (c *configMapMounter) listFunc(client clientset.Interface) func(metav1.ListOptions) (runtime.Object, error) {
-	return func(opts metav1.ListOptions) (runtime.Object, error) {
-		return client.CoreV1().ConfigMaps(c.source.Namespace).List(metav1.ListOptions{
-			FieldSelector: fields.OneTermEqualSelector("metadata.name", c.source.Name).String(),
-		})
-	}
-}
-
-func (c *configMapMounter) watchFunc(client clientset.Interface) func(options metav1.ListOptions) (watch.Interface, error) {
-	return func(options metav1.ListOptions) (watch.Interface, error) {
-		return client.CoreV1().ConfigMaps(c.source.Namespace).Watch(metav1.ListOptions{
-			FieldSelector: fields.OneTermEqualSelector("metadata.name", c.source.Name).String(),
-		})
-	}
 }
 
 func runCmd(path string) error {

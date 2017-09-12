@@ -13,8 +13,13 @@ func newRunCmd() *cobra.Command {
 		Use:   "run",
 		Short: "Run and hold kloader",
 		Run: func(cmd *cobra.Command, args []string) {
-			mounter := NewConfigMapMounter(getRestConfig(), configMap, mountDir, bashFile)
-			mounter.Run()
+			if configMap != "" {
+				mounter := NewConfigMapMounter(getRestConfig(), configMap, mountDir, bashFile)
+				mounter.Run()
+			} else if secret != "" {
+				mounter := NewSecretMounter(getRestConfig(), secret, mountDir, bashFile)
+				mounter.Run()
+			}
 			hold.Hold()
 		},
 	}
@@ -23,8 +28,16 @@ func newRunCmd() *cobra.Command {
 }
 
 func getRestConfig() *rest.Config {
-	if configMap == "" || mountDir == "" {
-		log.Fatal("ConfigMap/MountDir is required, but not provided")
+	if configMap == "" && secret == "" {
+		log.Fatal("ConfigMap/Secret is required, but not provided")
+	}
+
+	if configMap != "" && secret != "" {
+		log.Fatal("Either ConfigMap or Secret is required, but both are provided")
+	}
+
+	if mountDir == "" {
+		log.Fatal("MountDir is required, but not provided")
 	}
 
 	config, err := clientcmd.BuildConfigFromFlags(kubeMaster, kubeConfig)
