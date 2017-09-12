@@ -10,7 +10,7 @@ func newCheckCmd() *cobra.Command {
 		Short: "Validate kloader configuration",
 		Run: func(cmd *cobra.Command, args []string) {
 			mounter := NewConfigMapMounter(getRestConfig(), configMap, mountDir, bashFile)
-			mounter.Mount()
+			mounter.Mount(nil)
 		},
 	}
 	return cmd
