@@ -110,7 +110,7 @@ func NewConfigMapMounter(kubeConfig *rest.Config, configMap, mountDir, cmd strin
 }
 
 func (c *configMapMounter) Run() {
-	c.Mount(nil)  // initial mount // TODO @ review: is it required?
+	c.Mount(nil) // initial mount // TODO @ review: is it required?
 	go c.informer.Run(wait.NeverStop)
 	wait.Until(c.runWorker, time.Second, wait.NeverStop)
 }
