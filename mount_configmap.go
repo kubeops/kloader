@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
 	"reflect"
 	"strings"
 	"time"
@@ -150,7 +148,9 @@ func (c *configMapMounter) processItem(key string) error {
 	}
 
 	// handle the event
-	c.Mount(obj.(*apiv1.ConfigMap))
+	if obj.(*apiv1.ConfigMap) != nil {
+		c.Mount(obj.(*apiv1.ConfigMap))
+	}
 	if len(c.cmdFile) > 0 {
 		runCmd(c.cmdFile)
 	}
@@ -158,15 +158,6 @@ func (c *configMapMounter) processItem(key string) error {
 }
 
 func (c *configMapMounter) Mount(configMap *apiv1.ConfigMap) {
-	var err error
-	if configMap == nil { // for initial call before caching
-		configMap, err = c.kubeClient.CoreV1().ConfigMaps(c.source.Namespace).Get(c.source.Name, metav1.GetOptions{})
-		if err != nil {
-			log.Fatalln("Failed to get configMap, Cause", err)
-			return
-		}
-	}
-
 	payload := make(map[string]volume.FileProjection)
 	for k, v := range configMap.Data {
 		payload[k] = volume.FileProjection{Mode: 0777, Data: []byte(v)}
