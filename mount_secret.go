@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"reflect"
 	"strings"
 	"time"
@@ -19,7 +18,6 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/util/workqueue"
-	"io/ioutil"
 )
 
 type secretMounter struct {
@@ -33,7 +31,6 @@ type secretMounter struct {
 	queue    workqueue.RateLimitingInterface
 	informer cache.SharedIndexInformer
 }
-
 
 func NewSecretMounter(kubeConfig *rest.Config, secret, mountDir, cmd string) *secretMounter {
 	secretParts := strings.SplitN(strings.TrimSpace(secret), ".", 2)
@@ -149,7 +146,9 @@ func (c *secretMounter) processItem(key string) error {
 	}
 
 	// handle the event
-	c.Mount(obj.(*apiv1.Secret))
+	if obj.(*apiv1.Secret) != nil {
+		c.Mount(obj.(*apiv1.Secret))
+	}
 	if len(c.cmdFile) > 0 {
 		runCmd(c.cmdFile)
 	}
@@ -157,15 +156,6 @@ func (c *secretMounter) processItem(key string) error {
 }
 
 func (c *secretMounter) Mount(secret *apiv1.Secret) {
-	var err error
-	if secret == nil { // for initial call before caching
-		secret, err = c.kubeClient.CoreV1().Secrets(c.source.Namespace).Get(c.source.Name, metav1.GetOptions{})
-		if err != nil {
-			log.Fatalln("Failed to get secret, Cause", err)
-			return
-		}
-	}
-
 	payload := make(map[string]volume.FileProjection)
 	for k, v := range secret.Data {
 		payload[k] = volume.FileProjection{Mode: 0777, Data: []byte(v)}

@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
-	"io/ioutil"
 
 	"github.com/appscode/log"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
