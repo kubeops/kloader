@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	configMap, mountDir, bashFile, kubeMaster, kubeConfig string
+	configMap, secret, mountDir, bashFile, kubeMaster, kubeConfig string
 )
 
 func main() {
@@ -40,6 +40,7 @@ func main() {
 	rootCmd.AddCommand(version.NewCmdVersion())
 
 	rootCmd.PersistentFlags().StringVarP(&configMap, "config-map", "c", "", "Configmap name that needs to be mount")
+	rootCmd.PersistentFlags().StringVarP(&secret, "secret", "s", "", "Secret name that needs to be mount")
 	rootCmd.PersistentFlags().StringVarP(&mountDir, "mount-location", "m", "", "Volume location where the file will be mounted")
 	rootCmd.PersistentFlags().StringVarP(&bashFile, "boot-cmd", "b", "", "Bash script that will be run on every change of the file")
 	rootCmd.PersistentFlags().StringVar(&kubeMaster, "k8s-master", "", "The address of the Kubernetes API server (overrides any value in kubeconfig)")
