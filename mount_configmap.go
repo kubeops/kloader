@@ -37,19 +37,14 @@ type configMapMounter struct {
 }
 
 func NewConfigMapMounter(kubeConfig *rest.Config, configMap, mountDir, cmd string) *configMapMounter {
-	configMapParts := strings.Split(strings.TrimSpace(configMap), ".")
+	configMapParts := strings.SplitN(strings.TrimSpace(configMap), ".", 2)
 	source := &apiv1.ObjectReference{
 		Name: configMapParts[0],
 	}
-
-	// If Namespace is not provided with configMap Name try the Pod Namespace
-	// or default namespace.
-	source.Namespace = os.Getenv("KUBE_NAMESPACE")
-	if len(source.Namespace) == 0 {
-		source.Namespace = apiv1.NamespaceDefault
-	}
 	if len(configMapParts) == 2 {
 		source.Namespace = configMapParts[1]
+	} else {
+		source.Namespace = namespace()
 	}
 
 	client := clientset.NewForConfigOrDie(kubeConfig)
@@ -147,7 +142,7 @@ func (c *configMapMounter) processItem(key string) error {
 
 	obj, exists, err := c.informer.GetIndexer().GetByKey(key)
 	if err != nil {
-		return fmt.Errorf("Error fetching object with key %s from store: %v", key, err)
+		return fmt.Errorf("error fetching object with key %s from store: %v", key, err)
 	}
 
 	if !exists {
@@ -186,17 +181,4 @@ func (c *configMapMounter) Mount(configMap *apiv1.ConfigMap) {
 	if err != nil {
 		log.Fatalln("Failed to Mount ConfigMap, Cause", err)
 	}
-}
-
-func runCmd(path string) error {
-	log.Infoln("calling boot file to execute")
-	output, err := exec.Command("sh", "-c", path).CombinedOutput()
-	msg := fmt.Sprintf("%v", string(output))
-	log.Infoln("Output:\n", msg)
-	if err != nil {
-		log.Errorln("failed to run cmd")
-		return fmt.Errorf("error restarting %v: %v", msg, err)
-	}
-	log.Infoln("boot file executed")
-	return nil
 }

@@ -29,20 +29,20 @@ func newRunCmd() *cobra.Command {
 
 func getRestConfig() *rest.Config {
 	if configMap == "" && secret == "" {
-		log.Fatal("ConfigMap/Secret is required, but not provided")
+		log.Fatalln("ConfigMap/Secret is required, but not provided")
 	}
 
 	if configMap != "" && secret != "" {
-		log.Fatal("Either ConfigMap or Secret is required, but both are provided")
+		log.Fatalln("Either ConfigMap or Secret is required, but both are provided")
 	}
 
 	if mountDir == "" {
-		log.Fatal("MountDir is required, but not provided")
+		log.Fatalln("MountDir is required, but not provided")
 	}
 
 	config, err := clientcmd.BuildConfigFromFlags(kubeMaster, kubeConfig)
 	if err != nil {
-		log.Fatal("Failed to create KubeConfig")
+		log.Fatalln("Failed to create KubeConfig")
 	}
 	return config
 }

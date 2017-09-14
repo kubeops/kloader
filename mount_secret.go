@@ -19,6 +19,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/util/workqueue"
+	"io/ioutil"
 )
 
 type secretMounter struct {
@@ -33,20 +34,16 @@ type secretMounter struct {
 	informer cache.SharedIndexInformer
 }
 
+
 func NewSecretMounter(kubeConfig *rest.Config, secret, mountDir, cmd string) *secretMounter {
-	secretParts := strings.Split(strings.TrimSpace(secret), ".")
+	secretParts := strings.SplitN(strings.TrimSpace(secret), ".", 2)
 	source := &apiv1.ObjectReference{
 		Name: secretParts[0],
 	}
-
-	// If Namespace is not provided with secret Name try the Pod Namespace
-	// or default namespace.
-	source.Namespace = os.Getenv("KUBE_NAMESPACE")
-	if len(source.Namespace) == 0 {
-		source.Namespace = apiv1.NamespaceDefault
-	}
 	if len(secretParts) == 2 {
 		source.Namespace = secretParts[1]
+	} else {
+		source.Namespace = namespace()
 	}
 
 	client := clientset.NewForConfigOrDie(kubeConfig)
