@@ -104,7 +104,6 @@ func NewSecretMounter(kubeConfig *rest.Config, secret, mountDir, cmd string) *se
 }
 
 func (c *secretMounter) Run() {
-	c.Mount(nil) // initial mount // TODO @ review: is it required?
 	go c.informer.Run(wait.NeverStop)
 	wait.Until(c.runWorker, time.Second, wait.NeverStop)
 }
