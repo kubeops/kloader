@@ -1,4 +1,4 @@
-package main
+package controller
 
 import (
 	"fmt"
@@ -21,12 +21,12 @@ import (
 )
 
 type secretMounter struct {
-	source        *apiv1.ObjectReference
+	Source        *apiv1.ObjectReference
 	mountLocation string
 	cmdFile       string
 
 	kubeConfig *rest.Config
-	kubeClient clientset.Interface
+	KubeClient clientset.Interface
 
 	queue    workqueue.RateLimitingInterface
 	informer cache.SharedIndexInformer
@@ -90,11 +90,11 @@ func NewSecretMounter(kubeConfig *rest.Config, secret, mountDir, cmd string) *se
 	})
 
 	return &secretMounter{
-		source:        source,
+		Source:        source,
 		mountLocation: strings.TrimSuffix(mountDir, "/"),
 		cmdFile:       cmd,
 		kubeConfig:    kubeConfig,
-		kubeClient:    client,
+		KubeClient:    client,
 		queue:         queue,
 		informer:      informer,
 	}

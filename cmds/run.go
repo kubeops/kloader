@@ -1,7 +1,8 @@
-package main
+package cmds
 
 import (
 	"github.com/appscode/go/hold"
+	"github.com/appscode/kloader/controller"
 	"github.com/appscode/log"
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/rest"
@@ -14,16 +15,16 @@ func newRunCmd() *cobra.Command {
 		Short: "Run and hold kloader",
 		Run: func(cmd *cobra.Command, args []string) {
 			if configMap != "" {
-				mounter := NewConfigMapMounter(getRestConfig(), configMap, mountDir, bashFile)
+				mounter := controller.NewConfigMapMounter(getRestConfig(), configMap, mountDir, bashFile)
 				mounter.Run()
 			} else if secret != "" {
-				mounter := NewSecretMounter(getRestConfig(), secret, mountDir, bashFile)
+				mounter := controller.NewSecretMounter(getRestConfig(), secret, mountDir, bashFile)
 				mounter.Run()
 			}
 			hold.Hold()
 		},
 	}
-
+	addFlags(cmd)
 	return cmd
 }
 
