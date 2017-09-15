@@ -3,7 +3,7 @@
 [Website](https://appscode.com) • [Slack](https://slack.appscode.com) • [Forum](https://discuss.appscode.com) • [Twitter](https://twitter.com/AppsCodeHQ)
 
 # kloader
-Runs commands when a Kubernetes Configmap changes.
+Runs commands when a Kubernetes Configmap/Secret changes.
 
 ## Why Kloader?
 Many applications require configuration via some combination of config files. These configuration artifacts
