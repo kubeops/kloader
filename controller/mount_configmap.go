@@ -1,4 +1,4 @@
-package main
+package controller
 
 import (
 	"fmt"
@@ -23,12 +23,12 @@ import (
 const maxRetries = 5
 
 type configMapMounter struct {
-	source        *apiv1.ObjectReference
+	Source        *apiv1.ObjectReference
 	mountLocation string
 	cmdFile       string
 
 	kubeConfig *rest.Config
-	kubeClient clientset.Interface
+	KubeClient clientset.Interface
 
 	queue    workqueue.RateLimitingInterface
 	informer cache.SharedIndexInformer
@@ -92,11 +92,11 @@ func NewConfigMapMounter(kubeConfig *rest.Config, configMap, mountDir, cmd strin
 	})
 
 	return &configMapMounter{
-		source:        source,
+		Source:        source,
 		mountLocation: strings.TrimSuffix(mountDir, "/"),
 		cmdFile:       cmd,
 		kubeConfig:    kubeConfig,
-		kubeClient:    client,
+		KubeClient:    client,
 		queue:         queue,
 		informer:      informer,
 	}
