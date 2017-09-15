@@ -32,7 +32,7 @@ type secretMounter struct {
 	informer cache.SharedIndexInformer
 }
 
-func NewSecretMounter(kubeConfig *rest.Config, secret, mountDir, cmd string) *secretMounter {
+func NewSecretMounter(kubeConfig *rest.Config, secret, mountDir, cmd string, resyncPeriod time.Duration) *secretMounter {
 	secretParts := strings.SplitN(strings.TrimSpace(secret), ".", 2)
 	source := &apiv1.ObjectReference{
 		Name: secretParts[0],
@@ -60,7 +60,7 @@ func NewSecretMounter(kubeConfig *rest.Config, secret, mountDir, cmd string) *se
 			},
 		},
 		&apiv1.Secret{},
-		time.Minute*5,
+		resyncPeriod,
 		cache.Indexers{},
 	)
 

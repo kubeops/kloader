@@ -34,7 +34,7 @@ type configMapMounter struct {
 	informer cache.SharedIndexInformer
 }
 
-func NewConfigMapMounter(kubeConfig *rest.Config, configMap, mountDir, cmd string) *configMapMounter {
+func NewConfigMapMounter(kubeConfig *rest.Config, configMap, mountDir, cmd string, resyncPeriod time.Duration) *configMapMounter {
 	configMapParts := strings.SplitN(strings.TrimSpace(configMap), ".", 2)
 	source := &apiv1.ObjectReference{
 		Name: configMapParts[0],
@@ -62,7 +62,7 @@ func NewConfigMapMounter(kubeConfig *rest.Config, configMap, mountDir, cmd strin
 			},
 		},
 		&apiv1.ConfigMap{},
-		time.Minute*5,
+		resyncPeriod,
 		cache.Indexers{},
 	)
 

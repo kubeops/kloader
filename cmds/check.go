@@ -13,7 +13,7 @@ func newCheckCmd() *cobra.Command {
 		Short: "Validate kloader configuration",
 		Run: func(cmd *cobra.Command, args []string) {
 			if configMap != "" {
-				mounter := controller.NewConfigMapMounter(getRestConfig(), configMap, mountDir, bashFile)
+				mounter := controller.NewConfigMapMounter(getRestConfig(), configMap, mountDir, bashFile, resyncPeriod)
 				obj, err := mounter.KubeClient.CoreV1().ConfigMaps(mounter.Source.Namespace).
 					Get(mounter.Source.Name, metav1.GetOptions{})
 				if err != nil {
@@ -21,7 +21,7 @@ func newCheckCmd() *cobra.Command {
 				}
 				mounter.Mount(obj)
 			} else if secret != "" {
-				mounter := controller.NewSecretMounter(getRestConfig(), secret, mountDir, bashFile)
+				mounter := controller.NewSecretMounter(getRestConfig(), secret, mountDir, bashFile, resyncPeriod)
 				obj, err := mounter.KubeClient.CoreV1().Secrets(mounter.Source.Namespace).
 					Get(mounter.Source.Name, metav1.GetOptions{})
 				if err != nil {

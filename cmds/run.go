@@ -15,10 +15,10 @@ func newRunCmd() *cobra.Command {
 		Short: "Run and hold kloader",
 		Run: func(cmd *cobra.Command, args []string) {
 			if configMap != "" {
-				mounter := controller.NewConfigMapMounter(getRestConfig(), configMap, mountDir, bashFile)
+				mounter := controller.NewConfigMapMounter(getRestConfig(), configMap, mountDir, bashFile, resyncPeriod)
 				mounter.Run()
 			} else if secret != "" {
-				mounter := controller.NewSecretMounter(getRestConfig(), secret, mountDir, bashFile)
+				mounter := controller.NewSecretMounter(getRestConfig(), secret, mountDir, bashFile, resyncPeriod)
 				mounter.Run()
 			}
 			hold.Hold()
@@ -41,7 +41,7 @@ func getRestConfig() *rest.Config {
 		log.Fatalln("MountDir is required, but not provided")
 	}
 
-	config, err := clientcmd.BuildConfigFromFlags(kubeMaster, kubeConfig)
+	config, err := clientcmd.BuildConfigFromFlags(masterURL, kubeconfigPath)
 	if err != nil {
 		log.Fatalln("Failed to create KubeConfig")
 	}
