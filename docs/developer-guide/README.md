@@ -39,35 +39,7 @@ If you want to update/add dependencies, run:
 $ glide slow
 ```
 
-#### Build Docker images
-To build and push your custom Docker image, follow the steps below. To release a new version of Kloader, please follow the [release guide](/docs/developer-guide/release.md).
-
-```console
-# Build Docker image
-$ ./hack/docker/setup.sh; ./hack/docker/setup.sh push
-
-# Add docker tag for your repository
-$ docker tag appscode/kloader:<tag> <image>:<tag>
-
-# Push Image
-$ docker push <image>:<tag>
-```
-
 #### Generate CLI Reference Docs
 ```console
 $ ./hack/gendocs/make.sh
 ```
-
-### Testing Kloader
-#### Unit tests
-```console
-$ ./hack/make.py test unit
-```
-
-#### Run e2e tests
-Kloader uses [Ginkgo](http://onsi.github.io/ginkgo/) to run e2e tests.
-```console
-$ ./hack/make.py test e2e
-```
-
-To run e2e tests against remote backends, you need to set cloud provider credentials in `./hack/config/.env`. You can see an example file in `./hack/config/.env.example`.
