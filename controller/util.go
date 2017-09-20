@@ -12,16 +12,16 @@ import (
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
 
-var updateAcknowledged, updatePerformed uint64
+var updateReceived, mountPerformed uint64
 
-func updateAcknowledgedCounter() {
-	atomic.AddUint64(&updateAcknowledged, 1)
-	log.Infoln("Update Acknowledged:", atomic.LoadUint64(&updateAcknowledged))
+func incUpdateReceivedCounter() {
+	atomic.AddUint64(&updateReceived, 1)
+	log.Infoln("Update Received:", atomic.LoadUint64(&updateReceived))
 }
 
-func updatePerformedCounter() {
-	atomic.AddUint64(&updatePerformed, 1)
-	log.Infoln("Update Performed:", atomic.LoadUint64(&updatePerformed))
+func incMountCounter() {
+	atomic.AddUint64(&mountPerformed, 1)
+	log.Infoln("Mount Performed:", atomic.LoadUint64(&mountPerformed))
 }
 
 func namespace() string {

@@ -68,7 +68,7 @@ func NewConfigMapMounter(kubeConfig *rest.Config, configMap, mountDir, cmd strin
 
 	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
-			updateAcknowledgedCounter()
+			incUpdateReceivedCounter()
 			if key, err := cache.MetaNamespaceKeyFunc(obj); err == nil {
 				log.Infoln("Queued Add event")
 				queue.Add(key)
@@ -77,7 +77,7 @@ func NewConfigMapMounter(kubeConfig *rest.Config, configMap, mountDir, cmd strin
 			}
 		},
 		UpdateFunc: func(old, new interface{}) {
-			updateAcknowledgedCounter()
+			incUpdateReceivedCounter()
 			if oldMap, oldOK := old.(*apiv1.ConfigMap); oldOK {
 				if newMap, newOK := new.(*apiv1.ConfigMap); newOK {
 					if !reflect.DeepEqual(oldMap.Data, newMap.Data) {
@@ -126,10 +126,10 @@ func (c *configMapMounter) processNextItem() bool {
 	if err == nil {
 		c.queue.Forget(key)
 	} else if c.queue.NumRequeues(key) < maxRetries {
-		log.Infoln("Error processing %s (will retry): %v\n", key, err)
+		log.Infof("Error processing %s (will retry): %v\n", key, err)
 		c.queue.AddRateLimited(key)
 	} else {
-		log.Infoln("Error processing %s (giving up): %v\n", key, err)
+		log.Infof("Error processing %s (giving up): %v\n", key, err)
 		c.queue.Forget(key)
 	}
 
@@ -137,7 +137,7 @@ func (c *configMapMounter) processNextItem() bool {
 }
 
 func (c *configMapMounter) processItem(key string) error {
-	log.Infoln("Processing change to ConfigMap %s\n", key)
+	log.Infof("Processing change to ConfigMap %s\n", key)
 
 	obj, exists, err := c.informer.GetIndexer().GetByKey(key)
 	if err != nil {
@@ -145,13 +145,13 @@ func (c *configMapMounter) processItem(key string) error {
 	}
 
 	if !exists {
-		log.Infoln("Not exists: ConfigMap %s\n", key)
+		log.Infof("Not exists: ConfigMap %s\n", key)
 		return nil
 	}
 
 	// handle the event
-	updatePerformedCounter()
 	if obj.(*apiv1.ConfigMap) != nil {
+		incMountCounter()
 		c.Mount(obj.(*apiv1.ConfigMap))
 	}
 	if len(c.cmdFile) > 0 {
