@@ -66,6 +66,7 @@ func NewSecretMounter(kubeConfig *rest.Config, secret, mountDir, cmd string, res
 
 	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
+			incUpdateReceivedCounter()
 			if key, err := cache.MetaNamespaceKeyFunc(obj); err == nil {
 				log.Infoln("Queued Add event")
 				queue.Add(key)
@@ -74,6 +75,7 @@ func NewSecretMounter(kubeConfig *rest.Config, secret, mountDir, cmd string, res
 			}
 		},
 		UpdateFunc: func(old, new interface{}) {
+			incUpdateReceivedCounter()
 			if oldSecret, oldOK := old.(*apiv1.Secret); oldOK {
 				if newSecret, newOK := new.(*apiv1.Secret); newOK {
 					if !reflect.DeepEqual(oldSecret.Data, newSecret.Data) {
@@ -122,10 +124,10 @@ func (c *secretMounter) processNextItem() bool {
 	if err == nil {
 		c.queue.Forget(key)
 	} else if c.queue.NumRequeues(key) < maxRetries {
-		log.Infoln("Error processing %s (will retry): %v\n", key, err)
+		log.Infof("Error processing %s (will retry): %v\n", key, err)
 		c.queue.AddRateLimited(key)
 	} else {
-		log.Infoln("Error processing %s (giving up): %v\n", key, err)
+		log.Infof("Error processing %s (giving up): %v\n", key, err)
 		c.queue.Forget(key)
 	}
 
@@ -133,7 +135,7 @@ func (c *secretMounter) processNextItem() bool {
 }
 
 func (c *secretMounter) processItem(key string) error {
-	log.Infoln("Processing change to secret %s\n", key)
+	log.Infof("Processing change to secret %s\n", key)
 
 	obj, exists, err := c.informer.GetIndexer().GetByKey(key)
 	if err != nil {
@@ -141,7 +143,7 @@ func (c *secretMounter) processItem(key string) error {
 	}
 
 	if !exists {
-		log.Infoln("Not exists: secret %s\n", key)
+		log.Infof("Not exists: secret %s\n", key)
 		return nil
 	}
 
@@ -169,4 +171,6 @@ func (c *secretMounter) Mount(secret *apiv1.Secret) {
 	if err != nil {
 		log.Fatalln("Failed to Mount secret, Cause", err)
 	}
+
+	incMountCounter()
 }

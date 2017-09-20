@@ -6,10 +6,23 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"sync/atomic"
 
 	"github.com/appscode/log"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
+
+var updateReceived, mountPerformed uint64
+
+func incUpdateReceivedCounter() {
+	atomic.AddUint64(&updateReceived, 1)
+	log.Infoln("Update Received:", atomic.LoadUint64(&updateReceived))
+}
+
+func incMountCounter() {
+	atomic.AddUint64(&mountPerformed, 1)
+	log.Infoln("Mount Performed:", atomic.LoadUint64(&mountPerformed))
+}
 
 func namespace() string {
 	if ns := os.Getenv("KUBE_NAMESPACE"); ns != "" {
