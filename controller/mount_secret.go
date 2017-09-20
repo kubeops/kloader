@@ -28,9 +28,9 @@ type secretMounter struct {
 	kubeConfig *rest.Config
 	KubeClient clientset.Interface
 
-	queue      workqueue.RateLimitingInterface
-	controller cache.Controller
-	indexer    cache.Indexer
+	queue    workqueue.RateLimitingInterface
+	informer cache.Controller
+	indexer  cache.Indexer
 }
 
 func NewSecretMounter(kubeConfig *rest.Config, secret, mountDir, cmd string, resyncPeriod time.Duration) *secretMounter {
@@ -74,7 +74,7 @@ func NewSecretMounter(kubeConfig *rest.Config, secret, mountDir, cmd string, res
 		},
 	}
 
-	indexer, controller := cache.NewIndexerInformer(
+	indexer, informer := cache.NewIndexerInformer(
 		&cache.ListWatch{
 			ListFunc: func(opts metav1.ListOptions) (runtime.Object, error) {
 				return client.CoreV1().Secrets(source.Namespace).List(metav1.ListOptions{
@@ -100,13 +100,13 @@ func NewSecretMounter(kubeConfig *rest.Config, secret, mountDir, cmd string, res
 		kubeConfig:    kubeConfig,
 		KubeClient:    client,
 		queue:         queue,
-		controller:    controller,
+		informer:      informer,
 		indexer:       indexer,
 	}
 }
 
 func (c *secretMounter) Run() {
-	go c.controller.Run(wait.NeverStop)
+	go c.informer.Run(wait.NeverStop)
 	wait.Until(c.runWorker, time.Second, wait.NeverStop)
 }
 

@@ -30,9 +30,9 @@ type configMapMounter struct {
 	kubeConfig *rest.Config
 	KubeClient clientset.Interface
 
-	queue      workqueue.RateLimitingInterface
-	controller cache.Controller
-	indexer    cache.Indexer
+	queue    workqueue.RateLimitingInterface
+	informer cache.Controller
+	indexer  cache.Indexer
 }
 
 func NewConfigMapMounter(kubeConfig *rest.Config, configMap, mountDir, cmd string, resyncPeriod time.Duration) *configMapMounter {
@@ -76,7 +76,7 @@ func NewConfigMapMounter(kubeConfig *rest.Config, configMap, mountDir, cmd strin
 		},
 	}
 
-	indexer, controller := cache.NewIndexerInformer(
+	indexer, informer := cache.NewIndexerInformer(
 		&cache.ListWatch{
 			ListFunc: func(opts metav1.ListOptions) (runtime.Object, error) {
 				return client.CoreV1().ConfigMaps(source.Namespace).List(metav1.ListOptions{
@@ -102,13 +102,13 @@ func NewConfigMapMounter(kubeConfig *rest.Config, configMap, mountDir, cmd strin
 		kubeConfig:    kubeConfig,
 		KubeClient:    client,
 		queue:         queue,
-		controller:    controller,
+		informer:      informer,
 		indexer:       indexer,
 	}
 }
 
 func (c *configMapMounter) Run() {
-	go c.controller.Run(wait.NeverStop)
+	go c.informer.Run(wait.NeverStop)
 	wait.Until(c.runWorker, time.Second, wait.NeverStop)
 }
 
