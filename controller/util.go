@@ -6,10 +6,23 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"sync/atomic"
 
 	"github.com/appscode/log"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
+
+var updateAcknowledged, updatePerformed uint64
+
+func updateAcknowledgedCounter() {
+	atomic.AddUint64(&updateAcknowledged, 1)
+	log.Infoln("Update Acknowledged:", atomic.LoadUint64(&updateAcknowledged))
+}
+
+func updatePerformedCounter() {
+	atomic.AddUint64(&updatePerformed, 1)
+	log.Infoln("Update Performed:", atomic.LoadUint64(&updatePerformed))
+}
 
 func namespace() string {
 	if ns := os.Getenv("KUBE_NAMESPACE"); ns != "" {

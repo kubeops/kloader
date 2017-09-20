@@ -66,6 +66,7 @@ func NewSecretMounter(kubeConfig *rest.Config, secret, mountDir, cmd string, res
 
 	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
+			updateAcknowledgedCounter()
 			if key, err := cache.MetaNamespaceKeyFunc(obj); err == nil {
 				log.Infoln("Queued Add event")
 				queue.Add(key)
@@ -74,6 +75,7 @@ func NewSecretMounter(kubeConfig *rest.Config, secret, mountDir, cmd string, res
 			}
 		},
 		UpdateFunc: func(old, new interface{}) {
+			updateAcknowledgedCounter()
 			if oldSecret, oldOK := old.(*apiv1.Secret); oldOK {
 				if newSecret, newOK := new.(*apiv1.Secret); newOK {
 					if !reflect.DeepEqual(oldSecret.Data, newSecret.Data) {
@@ -146,6 +148,7 @@ func (c *secretMounter) processItem(key string) error {
 	}
 
 	// handle the event
+	updatePerformedCounter()
 	if obj.(*apiv1.Secret) != nil {
 		c.Mount(obj.(*apiv1.Secret))
 	}

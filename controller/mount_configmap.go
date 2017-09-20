@@ -68,6 +68,7 @@ func NewConfigMapMounter(kubeConfig *rest.Config, configMap, mountDir, cmd strin
 
 	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
+			updateAcknowledgedCounter()
 			if key, err := cache.MetaNamespaceKeyFunc(obj); err == nil {
 				log.Infoln("Queued Add event")
 				queue.Add(key)
@@ -76,6 +77,7 @@ func NewConfigMapMounter(kubeConfig *rest.Config, configMap, mountDir, cmd strin
 			}
 		},
 		UpdateFunc: func(old, new interface{}) {
+			updateAcknowledgedCounter()
 			if oldMap, oldOK := old.(*apiv1.ConfigMap); oldOK {
 				if newMap, newOK := new.(*apiv1.ConfigMap); newOK {
 					if !reflect.DeepEqual(oldMap.Data, newMap.Data) {
@@ -148,6 +150,7 @@ func (c *configMapMounter) processItem(key string) error {
 	}
 
 	// handle the event
+	updatePerformedCounter()
 	if obj.(*apiv1.ConfigMap) != nil {
 		c.Mount(obj.(*apiv1.ConfigMap))
 	}
