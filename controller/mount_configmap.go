@@ -151,7 +151,6 @@ func (c *configMapMounter) processItem(key string) error {
 
 	// handle the event
 	if obj.(*apiv1.ConfigMap) != nil {
-		incMountCounter()
 		c.Mount(obj.(*apiv1.ConfigMap))
 	}
 	if len(c.cmdFile) > 0 {
@@ -174,4 +173,6 @@ func (c *configMapMounter) Mount(configMap *apiv1.ConfigMap) {
 	if err != nil {
 		log.Fatalln("Failed to Mount ConfigMap, Cause", err)
 	}
+
+	incMountCounter()
 }

@@ -149,7 +149,6 @@ func (c *secretMounter) processItem(key string) error {
 
 	// handle the event
 	if obj.(*apiv1.Secret) != nil {
-		incMountCounter()
 		c.Mount(obj.(*apiv1.Secret))
 	}
 	if len(c.cmdFile) > 0 {
@@ -172,4 +171,6 @@ func (c *secretMounter) Mount(secret *apiv1.Secret) {
 	if err != nil {
 		log.Fatalln("Failed to Mount secret, Cause", err)
 	}
+
+	incMountCounter()
 }
