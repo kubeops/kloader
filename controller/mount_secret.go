@@ -28,8 +28,9 @@ type secretMounter struct {
 	kubeConfig *rest.Config
 	KubeClient clientset.Interface
 
-	queue    workqueue.RateLimitingInterface
-	informer cache.SharedIndexInformer
+	queue      workqueue.RateLimitingInterface
+	controller cache.Controller
+	indexer    cache.Indexer
 }
 
 func NewSecretMounter(kubeConfig *rest.Config, secret, mountDir, cmd string, resyncPeriod time.Duration) *secretMounter {
@@ -46,25 +47,7 @@ func NewSecretMounter(kubeConfig *rest.Config, secret, mountDir, cmd string, res
 	client := clientset.NewForConfigOrDie(kubeConfig)
 	queue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
 
-	informer := cache.NewSharedIndexInformer(
-		&cache.ListWatch{
-			ListFunc: func(opts metav1.ListOptions) (runtime.Object, error) {
-				return client.CoreV1().Secrets(source.Namespace).List(metav1.ListOptions{
-					FieldSelector: fields.OneTermEqualSelector("metadata.name", source.Name).String(),
-				})
-			},
-			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
-				return client.CoreV1().Secrets(source.Namespace).Watch(metav1.ListOptions{
-					FieldSelector: fields.OneTermEqualSelector("metadata.name", source.Name).String(),
-				})
-			},
-		},
-		&apiv1.Secret{},
-		resyncPeriod,
-		cache.Indexers{},
-	)
-
-	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+	handler := cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			incUpdateReceivedCounter()
 			if key, err := cache.MetaNamespaceKeyFunc(obj); err == nil {
@@ -89,7 +72,26 @@ func NewSecretMounter(kubeConfig *rest.Config, secret, mountDir, cmd string, res
 				}
 			}
 		},
-	})
+	}
+
+	indexer, controller := cache.NewIndexerInformer(
+		&cache.ListWatch{
+			ListFunc: func(opts metav1.ListOptions) (runtime.Object, error) {
+				return client.CoreV1().Secrets(source.Namespace).List(metav1.ListOptions{
+					FieldSelector: fields.OneTermEqualSelector("metadata.name", source.Name).String(),
+				})
+			},
+			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
+				return client.CoreV1().Secrets(source.Namespace).Watch(metav1.ListOptions{
+					FieldSelector: fields.OneTermEqualSelector("metadata.name", source.Name).String(),
+				})
+			},
+		},
+		&apiv1.Secret{},
+		resyncPeriod,
+		handler,
+		cache.Indexers{},
+	)
 
 	return &secretMounter{
 		Source:        source,
@@ -98,12 +100,13 @@ func NewSecretMounter(kubeConfig *rest.Config, secret, mountDir, cmd string, res
 		kubeConfig:    kubeConfig,
 		KubeClient:    client,
 		queue:         queue,
-		informer:      informer,
+		controller:    controller,
+		indexer:       indexer,
 	}
 }
 
 func (c *secretMounter) Run() {
-	go c.informer.Run(wait.NeverStop)
+	go c.controller.Run(wait.NeverStop)
 	wait.Until(c.runWorker, time.Second, wait.NeverStop)
 }
 
@@ -137,7 +140,7 @@ func (c *secretMounter) processNextItem() bool {
 func (c *secretMounter) processItem(key string) error {
 	log.Infof("Processing change to secret %s\n", key)
 
-	obj, exists, err := c.informer.GetIndexer().GetByKey(key)
+	obj, exists, err := c.indexer.GetByKey(key)
 	if err != nil {
 		return fmt.Errorf("Error fetching object with key %s from store: %v", key, err)
 	}
