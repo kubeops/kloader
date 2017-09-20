@@ -31,7 +31,8 @@ type configMapMounter struct {
 	KubeClient clientset.Interface
 
 	queue    workqueue.RateLimitingInterface
-	informer cache.SharedIndexInformer
+	informer cache.Controller
+	indexer  cache.Indexer
 }
 
 func NewConfigMapMounter(kubeConfig *rest.Config, configMap, mountDir, cmd string, resyncPeriod time.Duration) *configMapMounter {
@@ -48,25 +49,7 @@ func NewConfigMapMounter(kubeConfig *rest.Config, configMap, mountDir, cmd strin
 	client := clientset.NewForConfigOrDie(kubeConfig)
 	queue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
 
-	informer := cache.NewSharedIndexInformer(
-		&cache.ListWatch{
-			ListFunc: func(opts metav1.ListOptions) (runtime.Object, error) {
-				return client.CoreV1().ConfigMaps(source.Namespace).List(metav1.ListOptions{
-					FieldSelector: fields.OneTermEqualSelector("metadata.name", source.Name).String(),
-				})
-			},
-			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
-				return client.CoreV1().ConfigMaps(source.Namespace).Watch(metav1.ListOptions{
-					FieldSelector: fields.OneTermEqualSelector("metadata.name", source.Name).String(),
-				})
-			},
-		},
-		&apiv1.ConfigMap{},
-		resyncPeriod,
-		cache.Indexers{},
-	)
-
-	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+	handler := cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			incUpdateReceivedCounter()
 			if key, err := cache.MetaNamespaceKeyFunc(obj); err == nil {
@@ -91,7 +74,26 @@ func NewConfigMapMounter(kubeConfig *rest.Config, configMap, mountDir, cmd strin
 				}
 			}
 		},
-	})
+	}
+
+	indexer, informer := cache.NewIndexerInformer(
+		&cache.ListWatch{
+			ListFunc: func(opts metav1.ListOptions) (runtime.Object, error) {
+				return client.CoreV1().ConfigMaps(source.Namespace).List(metav1.ListOptions{
+					FieldSelector: fields.OneTermEqualSelector("metadata.name", source.Name).String(),
+				})
+			},
+			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
+				return client.CoreV1().ConfigMaps(source.Namespace).Watch(metav1.ListOptions{
+					FieldSelector: fields.OneTermEqualSelector("metadata.name", source.Name).String(),
+				})
+			},
+		},
+		&apiv1.ConfigMap{},
+		resyncPeriod,
+		handler,
+		cache.Indexers{},
+	)
 
 	return &configMapMounter{
 		Source:        source,
@@ -101,6 +103,7 @@ func NewConfigMapMounter(kubeConfig *rest.Config, configMap, mountDir, cmd strin
 		KubeClient:    client,
 		queue:         queue,
 		informer:      informer,
+		indexer:       indexer,
 	}
 }
 
@@ -139,7 +142,7 @@ func (c *configMapMounter) processNextItem() bool {
 func (c *configMapMounter) processItem(key string) error {
 	log.Infof("Processing change to ConfigMap %s\n", key)
 
-	obj, exists, err := c.informer.GetIndexer().GetByKey(key)
+	obj, exists, err := c.indexer.GetByKey(key)
 	if err != nil {
 		return fmt.Errorf("error fetching object with key %s from store: %v", key, err)
 	}
