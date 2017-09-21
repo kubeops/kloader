@@ -33,8 +33,8 @@ func NewRootCmd(version string) *cobra.Command {
 	flag.CommandLine.Parse([]string{})
 	rootCmd.PersistentFlags().BoolVar(&enableAnalytics, "analytics", enableAnalytics, "Send analytical events to Google Analytics")
 
-	rootCmd.AddCommand(newCheckCmd())
-	rootCmd.AddCommand(newRunCmd())
+	rootCmd.AddCommand(NewCheckCmd())
+	rootCmd.AddCommand(NewRunCmd())
 	rootCmd.AddCommand(v.NewCmdVersion())
 
 	return rootCmd
