@@ -1,18 +1,18 @@
-hash: cb6ab8935b57a25410ffeaecd562d5d4c6c25dd9b269f148503caa12abf8abfb
-updated: 2017-09-14T18:27:18.351310195-07:00
+hash: ce10784b1dc6c01509a1522a4c5891d42604fb9ba0a6d766b6e1a19bd22a5829
+updated: 2017-09-21T06:48:54.846195998-07:00
 imports:
 - name: github.com/appscode/go
-  version: d1fbd14e5c6e78557c12f6d2c9c282b3c0d0c612
+  version: 40c185ab12c60de0218e5e5c319a032498c21695
   subpackages:
+  - context
   - hold
+  - ioutil
+  - log
+  - log/golog
   - runtime
   - version
-- name: github.com/appscode/log
-  version: 68e0e42e42c01371f3950571fc87c2298a51dd8f
-  subpackages:
-  - golog
 - name: github.com/cpuguy83/go-md2man
-  version: 71acacd42f85e5e82f70a55327789582a5200a90
+  version: 1d903dcb749992f3741d744c0f8376b4bd7eb3e1
   subpackages:
   - md2man
 - name: github.com/davecgh/go-spew
@@ -50,7 +50,7 @@ imports:
   - proto
   - sortkeys
 - name: github.com/golang/glog
-  version: 44145f04b68cf362d9c4df2182967c2275eaefed
+  version: 23def4e6c14b4da8ac2ed8007337bc5eb5007998
 - name: github.com/google/gofuzz
   version: 44d81051d367757e1c7c6a5a86423ece9afcf63c
 - name: github.com/hashicorp/golang-lru
