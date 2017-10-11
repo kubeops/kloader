@@ -1,8 +1,8 @@
-hash: ce10784b1dc6c01509a1522a4c5891d42604fb9ba0a6d766b6e1a19bd22a5829
-updated: 2017-09-21T06:48:54.846195998-07:00
+hash: dd864b6a58ad7925e15f25ac26ce34343238ae7c45983944dc6e3151084d5b63
+updated: 2017-10-11T02:05:01.385002132-07:00
 imports:
 - name: github.com/appscode/go
-  version: 40c185ab12c60de0218e5e5c319a032498c21695
+  version: f719fe83ed5dd094e07c4456dc68e1227131d581
   subpackages:
   - context
   - hold
@@ -12,7 +12,7 @@ imports:
   - runtime
   - version
 - name: github.com/cpuguy83/go-md2man
-  version: 1d903dcb749992f3741d744c0f8376b4bd7eb3e1
+  version: 71acacd42f85e5e82f70a55327789582a5200a90
   subpackages:
   - md2man
 - name: github.com/davecgh/go-spew
@@ -50,9 +50,11 @@ imports:
   - proto
   - sortkeys
 - name: github.com/golang/glog
-  version: 23def4e6c14b4da8ac2ed8007337bc5eb5007998
+  version: 44145f04b68cf362d9c4df2182967c2275eaefed
 - name: github.com/google/gofuzz
   version: 44d81051d367757e1c7c6a5a86423ece9afcf63c
+- name: github.com/google/uuid
+  version: 7e072fc3a7be179aee6d3359e46015aa8c995314
 - name: github.com/hashicorp/golang-lru
   version: a0d98a5f288019575c6d1f4bb1573fef2d1fcdc4
   subpackages:
@@ -86,7 +88,7 @@ imports:
 - name: github.com/shurcooL/sanitized_anchor_name
   version: 10ef21a441db47d8b13ebcc5fd2310f636973c77
 - name: github.com/spf13/cobra
-  version: b78744579491c1ceeaaa3b40205e56b0591b93a3
+  version: 845c9050106f58df1cb4b4ed2e7e8dae7bbd770d
   subpackages:
   - doc
 - name: github.com/spf13/pflag
